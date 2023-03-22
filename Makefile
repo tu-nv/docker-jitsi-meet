@@ -66,11 +66,12 @@ push:
 
 %-all:
 	@$(foreach SERVICE, $(JITSI_SERVICES), $(MAKE) --no-print-directory JITSI_SERVICE=$(SERVICE) $(subst -all,;,$@))
-
+dev:
+	docker-compose up -d --build $(SERVICE)
 clean:
 	docker-compose stop
-	docker-compose rm
-	docker network prune
+	yes | docker-compose rm
+	yes | docker network prune
 
 prepare:
 	docker pull debian:bullseye-slim

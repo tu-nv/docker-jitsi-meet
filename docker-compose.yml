@@ -288,12 +288,20 @@ services:
     # Video bridge
     jvb:
         image: jitsi/jvb:${JITSI_IMAGE_VERSION:-stable-7648-4}
+        build:
+            context: ./jvb
+            dockerfile: Dockerfile
         restart: ${RESTART_POLICY:-unless-stopped}
         ports:
             - '${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp'
-            - '127.0.0.1:${JVB_COLIBRI_PORT:-8080}:8080'
+            - '8080:8080'
+            # xrdp port
+            - '3391:3389'
         volumes:
             - ${CONFIG}/jvb:/config:Z
+            - ./jvb/jitsi-videobridge:/jvb/jitsi-videobridge
+            # persistent Intellij data are stored in root home folder
+            - jvb_idea:/root
         environment:
             - DOCKER_HOST_ADDRESS
             - ENABLE_COLIBRI_WEBSOCKET
@@ -324,6 +332,7 @@ services:
             - XMPP_INTERNAL_MUC_DOMAIN
             - XMPP_SERVER
             - XMPP_PORT
+            - VMEETING_MODE
         depends_on:
             - prosody
         networks:
@@ -332,3 +341,5 @@ services:
 # Custom network so all services can communicate using a FQDN
 networks:
     meet.jitsi:
+volumes:
+    jvb_idea:
