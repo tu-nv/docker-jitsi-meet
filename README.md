@@ -1,3 +1,26 @@
+# Muno Notes
+## Protoc
+We use this version of protoc: https://github.com/protocolbuffers/protobuf/releases/download/v3.12.4/protoc-3.12.4-linux-x86_64.zip
+
+## Dev via intellij IDEA
+- Connect to jvb dev container via RDP.
+
+- Run/debug configuration:
+
+    Java 11 SDK
+
+    classpath: `jitsi-videobridge`
+
+    VM options: `-Dnet.java.sip.communicator.SC_HOME_DIR_LOCATION=/ -Dnet.java.sip.communicator.SC_HOME_DIR_NAME=config -Djava.util.logging.config.file=/config/logging.properties -Dconfig.file=/config/jvb.conf`
+
+    Main Class: `org.jitsi.videobridge.MainKt`
+
+    Working dir: `/jvb/jitsi-videobridge`
+
+    Env variables for Muno configuration (see env.example)
+
+- If intellij not detect generated gprc resource, add grpc generated-sources to source folders in configuration: https://github.com/quarkusio/quarkus/issues/13882
+
 # Jitsi Meet on Docker
 
 ![](resources/jitsi-docker.png)
