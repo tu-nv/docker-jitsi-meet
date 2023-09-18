@@ -1,0 +1,3 @@
+[submodule "jvb/jitsi-videobridge"]
+	path = jvb/jitsi-videobridge
+	url = git@github.com:tu-nv/jitsi-videobridge.git
