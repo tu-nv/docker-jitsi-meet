@@ -1,0 +1,40 @@
+version: '3.8'
+#
+# NOTE: dev file is used to override the prod file to provide dev environment
+services:
+    # uncomment to enter jvb dev-mode
+    # jvb:
+    #     image: nvantu/jvb-dev:drl-loadbalancing
+    #     build:
+    #         context: ./jvb
+    #         dockerfile: Dockerfile.dev
+    #     ports:
+    #         # xrdp port
+    #         - '3391:3389'
+    #     env_file: .env
+    #     environment:
+    #         - VMEETING_MODE=development
+    #     volumes:
+    #         - ./jvb/jitsi-videobridge:/jvb/jitsi-videobridge
+    #         # persistent Intellij data are stored in root home folder
+    #         - jvb_idea:/root
+
+    jicofo:
+        image: nvantu/jicofo-dev:drl-loadbalancing
+        build:
+            context: ./jicofo
+            dockerfile: Dockerfile.dev
+        ports:
+            # xrdp port
+            - '3392:3389'
+        env_file: .env
+        environment:
+            - VMEETING_MODE=development
+        volumes:
+            - ./jicofo/jicofo:/jicofo
+            - jicofo_idea:/root
+
+
+volumes:
+    jvb_idea:
+    jicofo_idea:

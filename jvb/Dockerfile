@@ -1,51 +1,37 @@
 ARG JITSI_REPO=jitsi
-ARG BASE_TAG=latest
-FROM ${JITSI_REPO}/base:${BASE_TAG}
+ARG BASE_TAG=stable-7648-4
 
-###################
-#  for intelij dev
-ARG DEV_ROOT_PASSWD=vmeeting
-RUN echo "root:${DEV_ROOT_PASSWD}" | chpasswd
-
+FROM ${JITSI_REPO}/base:${BASE_TAG} as builder
 RUN mkdir -p /usr/share/man/man1 && \
     apt-dpkg-wrap apt-get update && \
     apt-dpkg-wrap apt-get install -y openjdk-11-jdk-headless && \
     apt-cleanup
-# xrdp
+
 RUN \
-    # echo "deb http://ftp.debian.org/debian stretch-backports main" >> /etc/apt/sources.list && \
-    apt-dpkg-wrap apt-get update && \
-    apt-dpkg-wrap apt-get install -y wget openbox xterm && \
-    apt-dpkg-wrap apt-get install -y xrdp xorgxrdp && \
-    apt-cleanup
+    cd /opt/ && \
+    wget -q http://apache.mirrors.pair.com/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz && \
+    tar -xvzf apache-maven-3.9.4-bin.tar.gz && \
+    mv apache-maven-3.9.4 maven
+ENV M2_HOME=/opt/maven
+ENV PATH=${M2_HOME}/bin:${PATH}
 
-# IDEA
-RUN wget -q https://download-cdn.jetbrains.com/idea/ideaIC-2022.2.2.tar.gz && \
-    mkdir -p /opt/idea && \
-    tar -xzf ideaIC-2022.2.2.tar.gz -C /opt/idea --strip-components 1
+COPY jitsi-videobridge /jitsi-videobridge
 
-ENV LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    DISPLAY=:0
+WORKDIR /jitsi-videobridge
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -P buildFatJar
 
-RUN mkdir -p /var/run/xrdp/sockdir
+#################
+FROM ${JITSI_REPO}/base-java:${BASE_TAG}
 
-RUN mkdir -p /etc/services.d && cd /etc/services.d && mkdir -p openbox xrdp xrdp-sesman
-RUN echo "#!/usr/bin/with-contenv bash\nexec openbox" > /etc/services.d/openbox/run && \
-    echo "#!/usr/bin/with-contenv bash\nexec /usr/sbin/xrdp -nodaemon" > /etc/services.d/xrdp/run && \
-    echo "#!/usr/bin/with-contenv bash\nexec /usr/sbin/xrdp-sesman --nodaemon" > /etc/services.d/xrdp-sesman/run
+ENV VIDEOBRIDGE_VERSION=2.2-22-g42bc1b99-1
 
-# make RDP faster. we dev internally so crypt_level to none is ok
-# https://superuser.com/questions/1539900/slow-ubuntu-remote-desktop-using-xrdp
-RUN sed -i 's/crypt_level=.*/crypt_level=none/g' /etc/xrdp/xrdp.ini
-
-###################
-
-RUN apt-dpkg-wrap apt-get update && \
-    apt-dpkg-wrap apt-get install -y jitsi-videobridge2 jq curl iproute2 dnsutils libxtst6 && \
-    apt-cleanup
+RUN \
+	apt-dpkg-wrap apt-get update && \
+	apt-dpkg-wrap apt-get install -y jitsi-videobridge2=${VIDEOBRIDGE_VERSION} jq curl iproute2 dnsutils && \
+	apt-cleanup
 
 COPY rootfs/ /
+
+COPY --from=builder /jitsi-videobridge/jvb/target/jitsi-videobridge-2.1-SNAPSHOT-jar-with-dependencies.jar /usr/share/jitsi-videobridge/jitsi-videobridge.jar
 
 VOLUME /config

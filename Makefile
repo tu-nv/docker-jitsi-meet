@@ -4,6 +4,12 @@ JITSI_BUILD ?= unstable
 JITSI_REPO ?= jitsi
 NATIVE_ARCH ?= $(shell uname -m)
 
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+export PROGRESS_NO_TRUNC=1
+# set this to see full command output while building
+export BUILDKIT_PROGRESS=plain
+
 JITSI_SERVICES := base base-java web prosody jicofo jvb jigasi jibri
 
 ifeq ($(NATIVE_ARCH),x86_64)
@@ -66,8 +72,13 @@ push:
 
 %-all:
 	@$(foreach SERVICE, $(JITSI_SERVICES), $(MAKE) --no-print-directory JITSI_SERVICE=$(SERVICE) $(subst -all,;,$@))
+
 dev:
-	docker-compose up -d --build $(SERVICE)
+	docker-compose -f ./docker-compose.yml -f ./docker-compose.dev.yml up -d --build $(SERVICE)
+
+prod:
+	docker-compose -f ./docker-compose.yml up -d --build $(SERVICE)
+
 clean:
 	docker-compose stop
 	yes | docker-compose rm
