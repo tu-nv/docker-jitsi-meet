@@ -1,8 +1,13 @@
 FORCE_REBUILD ?= 0
 JITSI_RELEASE ?= stable
-JITSI_BUILD ?= unstable
-JITSI_REPO ?= jitsi
+JITSI_BUILD ?= drl-loadbalancing
+JITSI_REPO ?= nvantu
 NATIVE_ARCH ?= $(shell uname -m)
+
+include .env
+
+# export all .env variable to sub Makefile
+export $(shell sed 's/=.*//' .env)
 
 export DOCKER_BUILDKIT=1
 export COMPOSE_DOCKER_CLI_BUILD=1
@@ -30,6 +35,10 @@ endif
 
 
 all: build-all
+
+$(JITSI_SERVICES):
+	docker-compose -f ./docker-compose.yml build $@
+	docker push $(JITSI_REPO)/$@:$(JITSI_BUILD)
 
 release:
 	@$(foreach SERVICE, $(JITSI_SERVICES), $(MAKE) --no-print-directory JITSI_SERVICE=$(SERVICE) buildx;)
@@ -79,7 +88,11 @@ dev:
 prod:
 	docker-compose -f ./docker-compose.yml up -d --build $(SERVICE)
 
+deploy:
+	env $(cat .env | grep -e "^[A-Z]" | xargs) docker stack deploy -c jitsi_swarm.yml jitsi_swarm
+
 clean:
+	docker stack rm jitsi_swarm
 	docker-compose stop
 	yes | docker-compose rm
 	yes | docker network prune
@@ -88,4 +101,4 @@ prepare:
 	docker pull debian:bullseye-slim
 	FORCE_REBUILD=1 $(MAKE)
 
-.PHONY: all build tag push clean prepare release $(addprefix build_,$(JITSI_SERVICES))
+.PHONY: all build tag push clean prepare release $(addprefix build_,$(JITSI_SERVICES)) $(JITSI_SERVICES)

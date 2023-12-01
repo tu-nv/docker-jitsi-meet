@@ -1,39 +1,19 @@
-# Jitsi Meet on Docker
+# Dev via intellij IDEA
+- Connect to jvb dev container via RDP.
 
-![](resources/jitsi-docker.png)
+- Run/debug configuration:
 
-[Jitsi](https://jitsi.org/) is a set of Open Source projects that allows you to easily build and deploy secure videoconferencing solutions.
+    Java 11 SDK
 
-[Jitsi Meet](https://jitsi.org/jitsi-meet/) is a fully encrypted, 100% Open Source video conferencing solution that you can use all day, every day, for free — with no account needed.
+    classpath: jitsi-videobridge
 
-This repository contains the necessary tools to run a Jitsi Meet stack on [Docker](https://www.docker.com) using [Docker Compose](https://docs.docker.com/compose/).
+    VM options: -Dnet.java.sip.communicator.SC_HOME_DIR_LOCATION=/ -Dnet.java.sip.communicator.SC_HOME_DIR_NAME=config -Djava.util.logging.config.file=/config/logging.properties -Dconfig.file=/config/jvb.conf
 
-All our images are published on [DockerHub](https://hub.docker.com/u/jitsi/).
+    Main Class: org.jitsi.videobridge.MainKt
 
-## Supported architectures
+    Working dir: /jvb/jitsi-videobridge
 
-Starting with `stable-7289-1` the published images are available for `amd64` and `arm64` with the exception of `jigasi`.
+- Same for jicofo, but:
+    VM options: -Dnet.java.sip.communicator.SC_HOME_DIR_LOCATION=/ -Dnet.java.sip.communicator.SC_HOME_DIR_NAME=config
+    Program arguments: --domain="meet.jitsi" --host="xmpp.meet.jitsi" --user_name="focus" --user_domain="auth.meet.jitsi"
 
-## Tags
-
-These are the currently published tags for all our images:
-
-Tag | Description
--- | --
-`stable` | Points to the latest stable release
-`stable-NNNN-X` | A stable release
-`unstable` | Points to the latest unstable release
-`unstable-YYYY-MM-DD` | Daily unstable release
-`latest` | Deprecated, no longer updated (will be removed)
-
-## Installation
-
-The installation manual is available [here](https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-docker).
-
-### Kubernetes
-
-If you plan to install the jitsi-meet stack on a Kubernetes cluster you can find tools and tutorials in the project [Jitsi on Kubernetes](https://github.com/jitsi-contrib/jitsi-kubernetes).
-
-## TODO
-
-* Builtin TURN server.

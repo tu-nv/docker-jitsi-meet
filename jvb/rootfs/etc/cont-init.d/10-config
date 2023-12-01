@@ -20,7 +20,12 @@ export JVB_WS_SERVER_ID_FALLBACK=$(ip route get ${XMPP_SERVER_IP} | grep -oP '(?
 
 # Local IP for the ice4j mapping harvester.
 export LOCAL_ADDRESS=$(ip route get 1 | grep -oP '(?<=src ).*' | awk '{ print $1 '})
-
+export PUBLIC_ADDRESS=$(dig +short myip.opendns.com @resolver1.opendns.com +tcp)
+if [[ "$JITSI_MEET_SUBNET" == "default" ]]; then
+    export SWARM_ADDRESS=$(ip route get "$PUBLIC_ADDRESS" | grep -oP '(?<=src ).*' | awk '{ print $1 '})
+else
+    export SWARM_ADDRESS=$(ip route | grep "${JITSI_MEET_SUBNET}" | sed -n 's/.*src \([0-9.]\+\).*/\1/p')
+fi
 export SENTRY_RELEASE="${SENTRY_RELEASE:-$(apt-cache policy jitsi-videobridge2 | sed -n '/Installed/p' | sed -e 's/[^:]*: //')}"
 
 if [[ -f /config/custom-sip-communicator.properties ]]; then
